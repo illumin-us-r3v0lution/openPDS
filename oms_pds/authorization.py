@@ -16,27 +16,18 @@ class PDSAuthorization(Authorization):
 
     def trustWrapper(self, datastore_owner):
         print "checking trust wrapper"
-        #ds_owner_profile = Profile.objects.get(uuid = datastore_owner_uuid)
-        #print datastore_owner.sharinglevel_owner.get(isselected = True)
+        ds_owner_profile = Profile.objects.get(uuid = datastore_owner_uuid)
+        issharing = ds_owner_profile.sharinglevel_owner.get(isselected = True)
+        print issharing
 
-#>>> p0.role_owner.latest("id")
-#<Role: Role object>
-#>>> p0.role_owner.latest("id").name
-#u'Care_Team'
-#>>> p0.sharinglevel_owner.filter(isselected = True)
-#[<SharingLevel: SharingLevel object>]
-#>>> p0.sharinglevel_owner.filter(isselected = True).level
-#Traceback (most recent call last):
-#  File "<input>", line 1, in <module>
-#AttributeError: 'QuerySet' object has no attribute 'level'
-#>>> sl = p0.sharinglevel_owner.first(isselected = True)
-#Traceback (most recent call last):
-#  File "<input>", line 1, in <module>
-#AttributeError: 'RelatedManager' object has no attribute 'first'
-#>>> sl = p0.sharinglevel_owner.filter(isselected = True)
-#>>> sl.latest("id")
-#<SharingLevel: SharingLevel object>
-#>>> sl.latest("id").level
+       # p0.role_owner.latest("id")
+       # p0.role_owner.latest("id").name
+       # p0.sharinglevel_owner.filter(isselected = True)
+       # p0.sharinglevel_owner.filter(isselected = True).level
+       # sl = p0.sharinglevel_owner.first(isselected = True)
+       # sl = p0.sharinglevel_owner.filter(isselected = True)
+       # sl.latest("id")
+       # sl.latest("id").level
  
     def is_authorized(self, request, object=None):
         print "is authorized?"

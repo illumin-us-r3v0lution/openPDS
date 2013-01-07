@@ -132,7 +132,7 @@ INSTALLED_APPS = (
     'oms_pds.sharing',
     'oms_pds.trust',
     'djcelery',
-    'oms_pds.ra_celery',
+    #'oms_pds.ra_celery',
     'celerytest',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',

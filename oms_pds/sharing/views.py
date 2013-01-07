@@ -16,10 +16,10 @@ def edit(request):
     '''A web interface for modifying trust framework permissions'''
     form = settingsforms.Sharing_Form()
     template = {"form":form}
-    if request.GET.get('datastore_owner') == None:
+    if request.GET.get('datastore_owner__uuid') == None:
         raise Exception('missing datastore_owner')
-    datastore_owner = request.GET.get('datastore_owner')
-    template['datastore_owner']=datastore_owner
+    datastore_owner = request.GET.get('datastore_owner__uuid')
+    template['datastore_owner__uuid']=datastore_owner
     form.update_form(datastore_owner)
 
     p = Profile.objects.get(uuid=datastore_owner)
