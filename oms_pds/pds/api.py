@@ -24,8 +24,8 @@ class FunfResource(MongoDBResource):
     value = fields.CharField(attribute="value", null=True, help_text='A json blob of funf data.')
 
     class Meta:
-        authentication = OAuth2Authentication("funf_write")
-        authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True)
+#        authentication = OAuth2Authentication("funf_write")
+        authorization = PDSAuthorization(scope = "funf", audit_enabled = True, minimal_sharing_level = 1)
         resource_name = "funf"
         list_allowed_methods = ["delete", "get", "post"]
 #        authorization = Authorization()
@@ -50,14 +50,27 @@ class AnswerResource(MongoDBResource):
 #    data = fields.ToManyField('oms_pds.pds.api.resources.SocialHealthResource', 'socialhealth_set', related_name='realityanalysis')
     value = fields.DictField(attribute="data", help_text='A json blob of answer data.', null=True, )
 
+    def dehydrate(self, bundle):
+        # Since there's no backing model here, tastypie for some reason doesn't fill in the necessary fields on the data
+        # As a result, this must be done manually
+	print bundle.data
+	
+	if not bundle.data['key'] in self.Meta.authorization.scopes:
+	    print "removing", bundle.data
+	    return None
+	print "next"
+
+        return bundle
+    
     class Meta:
         resource_name = "answer"
         list_allowed_methods = ["delete", "get", "post"]
         help_text='resource help text...'
-        authentication = OAuth2Authentication("funf_write")
-        authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True)
+#        authentication = OAuth2Authentication("funf_write")
+        authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True, minimal_sharing_level = 3)
         object_class = Document
         collection = "answer" # collection name
+
 
 class AnswerListResource(MongoDBResource):
     id = fields.CharField(attribute="_id", help_text='A guid identifier for an answer entry.')
@@ -69,7 +82,7 @@ class AnswerListResource(MongoDBResource):
         resource_name = "answerlist"
         list_allowed_methods = ["delete", "get", "post"]
         help_text='resource help text...'
-        authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True)
+        authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True, minimal_sharing_level = 3)
         object_class = Document
         collection = "answerlist" # collection name
 
@@ -77,7 +90,7 @@ class ProfileResource(ModelResource):
     
     class Meta:
         queryset = Profile.objects.all()
-        authentication = OAuth2Authentication("funf_write")
+#        authentication = OAuth2Authentication("funf_write")
         authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True)
         filtering = { "uuid": ["contains", "exact"]}
 
@@ -87,7 +100,7 @@ class SharingLevelResource(ModelResource):
     class Meta:
         queryset = SharingLevel.objects.all()
         resource_name = 'sharinglevel'
-        authentication = OAuth2Authentication("funf_write")
+#        authentication = OAuth2Authentication("funf_write")
         authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True)
         filtering = { "datastore_owner": ALL_WITH_RELATIONS}
 
@@ -98,7 +111,7 @@ class RoleResource(ModelResource):
         resource_name = 'role'
         queryset = Role.objects.all()
         list_allowed_methods = ["delete", "get", "post"]
-        authentication = OAuth2Authentication("funf_write")
+#        authentication = OAuth2Authentication("funf_write")
         authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True)
         filtering = { "datastore_owner" : ALL_WITH_RELATIONS }
 
@@ -108,7 +121,7 @@ class PurposeResource(ModelResource):
     class Meta:
         resource_name = 'purpose'
         queryset = Purpose.objects.all()
-        authentication = OAuth2Authentication("funf_write")
+#        authentication = OAuth2Authentication("funf_write")
         authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True)
         filtering = {"datastore_owner" : ALL_WITH_RELATIONS }
 
@@ -118,7 +131,7 @@ class ScopeResource(ModelResource):
     class Meta:
         resource_name = 'scope'
         queryset = Scope.objects.all()
-        authentication = OAuth2Authentication("funf_write")
+#        authentication = OAuth2Authentication("funf_write")
         authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True)
         filtering = {"datastore_owner" : ALL_WITH_RELATIONS }
 
@@ -167,7 +180,7 @@ class AuditEntryCountResource(ModelResource):
 
     class Meta:
         queryset = AuditEntry.objects.extra({ 'date' : 'date(timestamp)'}).values('date').annotate(count = models.Count("id"))
-        authentication = OAuth2Authentication("funf_write")
+        #authentication = OAuth2Authentication("funf_write")
         authorization = PDSAuthorization(scope = "funf_write", audit_enabled = False)
         fields = ['date', 'count']
         allowed_methods = ('get')
@@ -197,7 +210,7 @@ class AuditEntryResource(ModelResource):
         queryset = AuditEntry.objects.all()
         # POST is provided to allow a Resource or Sandbox server to store audit entries on the PDS
         allowed_methods = ('get', 'post')
-        authentication = OAuth2Authentication("funf_write")
+#        authentication = OAuth2Authentication("funf_write")
         authorization = PDSAuthorization(scope = "funf_write", audit_enabled = False)
         filtering = { "datastore_owner" : ALL_WITH_RELATIONS,
                       "timestamp": ["gte", "lte", "gt", "lt"],

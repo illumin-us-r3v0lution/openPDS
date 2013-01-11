@@ -4,22 +4,50 @@ from oms_pds.pds.models import Profile, AuditEntry
 
 import settings
 import pdb
+import requests
 
 class PDSAuthorization(Authorization):
     audit_enabled = True
-    scope = ""
+    scopes = []
     requester_uuid = ""
+    minimal_sharing_level = 0
     
     def requester(self):
         print self.requester_uuid
         return self.requester_uuid
 
-    def trustWrapper(self, datastore_owner):
-        print "checking trust wrapper"
-        ds_owner_profile = Profile.objects.get(uuid = datastore_owner_uuid)
-        issharing = ds_owner_profile.sharinglevel_owner.get(isselected = True)
-        print issharing
+    def getSharingLevel(self, profile):
+        sharinglevel = profile.sharinglevel_owner.get(isselected = True)
+#	if sharinglevel.count() == 0:
+#	   raise Exception("No sharing level objects are selected.")
+#	elif sharinglevel.count() > 1:
+#	   raise Exception("Too many sharing level objects selected.")
+	return sharinglevel
 
+    def get_userinfo_from_token(self, token):
+	print 'get user info from token'
+	user_info = {}
+        try:
+	    print settings.SERVER_OMS_REGISTRY
+            r = requests.get("http://"+settings.SERVER_OMS_REGISTRY+"/get_key_from_token?bearer_token="+str(token))
+	    print r.json()
+	    user_info = r.json()
+	    
+            if user_info['status'] == 'error':
+                raise Exception(result['error'])
+	    self.requester_uuid = user_info['client']
+	    self.scopes = user_info['scopes']
+
+        except Exception as ex:
+            print ex
+            return False
+        return user_info
+
+
+    def trustWrapper(self, profile):
+        print "checking trust wrapper"
+        sharinglevel = self.getSharingLevel(profile)
+        print sharinglevel.level
        # p0.role_owner.latest("id")
        # p0.role_owner.latest("id").name
        # p0.sharinglevel_owner.filter(isselected = True)
@@ -28,27 +56,39 @@ class PDSAuthorization(Authorization):
        # sl = p0.sharinglevel_owner.filter(isselected = True)
        # sl.latest("id")
        # sl.latest("id").level
+	return True
  
     def is_authorized(self, request, object=None):
         print "is authorized?"
-        authenticator = OAuth2Authentication(self.scope)
-        token = request.REQUEST["bearer_token"] if "bearer_token" in request.REQUEST else request.META["HTTP_BEARER_TOKEN"]
-        # Result will be the uuid of the requesting party
-        
+	_authorized = True
         # Note: the trustwrapper must be run regardless of if auditting is enabled on this call or not
-        
-        datastore_owner_uuid = request.REQUEST["datastore_owner__uuid"]
+       
+	if request.REQUEST.has_key("datastore_owner__uuid"):
+	    print "has uuid"
+	else:
+	    print "Missing ds uuid"
+	    raise Exception("Missing datastore_owner__uuid.  Please make sure it exists as a querystring parameter") 
+        datastore_owner_uuid = request.REQUEST.get("datastore_owner__uuid")
         datastore_owner, ds_owner_created = Profile.objects.get_or_create(uuid = datastore_owner_uuid)
-        self.requester_uuid = authenticator.get_userinfo_from_token(token, self.scope)
+        token = request.REQUEST["bearer_token"] if "bearer_token" in request.REQUEST else request.META["HTTP_BEARER_TOKEN"]
+
+	userinfo = self.get_userinfo_from_token(token)
+	print userinfo
+#        authenticator = OAuth2Authentication(self.scope)
+#        self.requester_uuid = authenticator.get_userinfo_from_token(token, self.scope)
         self.trustWrapper(datastore_owner)
         
+        # Result will be the uuid of the requesting party
         print self.requester_uuid
         try:
             if (self.audit_enabled):
                 #pdb.set_trace()
                 audit_entry = AuditEntry(token = token)
                 audit_entry.method = request.method
-                audit_entry.scope = self.scope
+		scope_string = ""
+		for s in self.scopes:
+		    scope_string += str(s)+" "
+                audit_entry.scope = scope_string
                 audit_entry.purpose = request.REQUEST["purpose"] if "purpose" in request.REQUEST else ""
                 audit_entry.system_entity_toggle = request.REQUEST["system_entity"] if "system_entity" in request.REQUEST else False
                 # NOTE: datastore_owner and requester are required
@@ -60,12 +100,15 @@ class PDSAuthorization(Authorization):
         except Exception as e:
             print e
         
-        return True
+	print 'is authorized?'
+	print _authorized
+        return _authorized
 
-    def __init__(self, scope, audit_enabled = True):
+    def __init__(self, scope, audit_enabled = True, minimal_sharing_level = 0):
         #pdb.set_trace()
         self.scope = scope
         self.audit_enabled = audit_enabled
+	self.minimal_sharing_level = minimal_sharing_level
     
     # Optional but useful for advanced limiting, such as per user.
     # def apply_limits(self, request, object_list):

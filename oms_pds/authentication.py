@@ -3,6 +3,7 @@ import httplib
 import settings
 import json
 import pdb
+import requests
 
 class OAuth2Authentication(Authentication):
 
@@ -10,22 +11,15 @@ class OAuth2Authentication(Authentication):
         # upon success, will return a json {'key':'value'}
         userinfo = {}
         try:
-            conn = httplib.HTTPConnection(settings.SERVER_OMS_REGISTRY, timeout=100)
-            request_path="/get_key_from_token?bearer_token="+str(token)+"&scope="+str(scope)
-            conn.request("GET",str(request_path))
-            r1 = conn.getresponse()
-            response_text = r1.read()
-            result = json.loads(response_text)
-            print result
-            if 'error' in result:
+	    r = requests.get("http://"+settings.SERVER_OMS_REGISTRY+"/get_key_from_token?bearer_token="+str(token))
+            if r.json['status'] == 'error':
                 raise Exception(result['error'])
-            key = result['key']
-            conn.close()
+
         except Exception as ex:
             print ex
             return False
             print "successfully got key: returning"
-        return key
+        return r.json
 
     def __init__(self, scope):
         self.scope = scope
