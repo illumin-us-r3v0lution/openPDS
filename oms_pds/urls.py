@@ -34,7 +34,7 @@
 from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.conf.urls.defaults import *
-from django.views.generic.simple import direct_to_template
+from django.views.generic.base import TemplateView
 from django.contrib import admin
 admin.autodiscover()
 
@@ -71,9 +71,9 @@ urlpatterns = patterns('oms_pds.views',
     (r'^trustsettings/', 'permissions'),
     (r'^pds/', include('oms_pds.pds.urls')),
     (r'^admin/', include(admin.site.urls)),
-    (r'^admin/audit', direct_to_template, { 'template' : 'audit.html' }),
+    (r'^admin/audit', TemplateView, { 'template' : 'audit.html' }),
     #(r'^documentation/', include('tastytools.urls'), {'api_name': v1_api.api_name}),
-    (r'^admin/roles', direct_to_template, { 'template' : 'roles.html' }),
+    (r'^admin/roles', TemplateView, { 'template' : 'roles.html' }),
     (r'^(?P<owner_uuid>\w+)/api/', include(audit_entry_resource.urls)),
 #    (r'^admin/viz', 'django.views.generic.simple.direct_to_template', { 'template' : 'reality_analysis/reality_analysis/visualization.html' }),
     # Examples:
