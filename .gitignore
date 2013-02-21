@@ -1,2 +1,3 @@
+*.db
 *.pyc
 oms_pds/settings.py
