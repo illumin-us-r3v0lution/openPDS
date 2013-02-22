@@ -32,6 +32,7 @@
 
 from django.conf import settings
 from django.db import models
+from django.db.models import signals
 from mongoengine import *
 
 connect(settings.MONGODB_DATABASE)
@@ -39,7 +40,39 @@ connect(settings.MONGODB_DATABASE)
 
 class Profile(models.Model):
     uuid = models.CharField(max_length=36, unique=True, blank = False, null = False, db_index = True)
+    isinit = models.BooleanField(default=False)
 
+
+def create_tw(sender, instance, created, **kwargs):
+    # Check if the trust wrapper has been initialized.  Note: this may need to be a callback to a authrorization server for default values at some point... 
+    print instance.isinit
+    if instance.isinit == False:
+        p0 = Purpose(name="PDS", datastore_owner=instance)
+        p0.save()
+        s0 = SharingLevel(level = 0, datastore_owner=instance, isselected = True)
+        s1 = SharingLevel(level = 1, datastore_owner=instance, isselected = False)
+        s2 = SharingLevel(level = 2, datastore_owner=instance, isselected = False)
+        s3 = SharingLevel(level = 3, datastore_owner=instance, isselected = False)
+        s0.save()
+        s1.save()
+        s2.save()
+        s3.save()
+        # Mapping each sharing level to the purpose PDS
+        s0.purpose = [p0]
+        s1.purpose = [p0]
+        s2.purpose = [p0]
+        s3.purpose = [p0]
+        # we need to save the sharing levels twice, becuse the act of saving creates the primary key necessary to map sharing level to purpose
+        s0.save()
+        s1.save()
+        s2.save()
+        s3.save()
+        instance.isinit = True;
+	instance.save()
+
+signals.post_save.connect(create_tw, sender=Profile)
+
+    
 class ResourceKey(models.Model):
     ''' A way of controlling sharing within a collection.  Maps to any key within a collection.  For example, funf probes and individual answers to questions'''
     key = models.CharField(max_length=120)
