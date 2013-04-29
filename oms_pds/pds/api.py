@@ -25,6 +25,10 @@ class FunfResource(MongoDBResource):
 
     class Meta:
         authentication = OAuth2Authentication("funf_write")
+        # We can specify a different scope for each method in a dictionary, or a single default scope in a string
+        # For dictionaries, DEFAULT is a fall-back: any method without an entry will get the default
+        # For example, if we did not include GET and POST entries below, funf_write would still be used for these
+        scopes = { "DEFAULT": "funf_write", "GET": "funf_write", "POST": "funf_write" }
         authorization = PDSAuthorization(scope = "funf_write", audit_enabled = True)
         resource_name = "funf"
         list_allowed_methods = ["delete", "get", "post"]
