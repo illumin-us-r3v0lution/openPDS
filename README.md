@@ -1,13 +1,6 @@
 Human Dynamics openPDS
 ======================================
 
-
-
-We need some good docs in here detailing:
-
-* what is the Personal Data Store
-* how do you get started / install / run it
-
     >apt-get install python-pip
     
     >apt-get install python-virtualenv
@@ -26,12 +19,10 @@ We need some good docs in here detailing:
     
     >source bin/activate
 
-    >cd OMS-PDS/conf
+    >cd openPDS/conf
     
     >pip install -r requirements.txt
 
     >cd ../
     
     >python manage.py runserver 0.0.0.0:8002 (for access to local VM)
- 
-* links to important pages / wiki / etc
