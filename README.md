@@ -1,4 +1,4 @@
-Project Mustard Seed - Resource Server
+Human Dynamics openPDS
 ======================================
 
 
