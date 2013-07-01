@@ -8,7 +8,7 @@ We need some good docs in here detailing:
 * what is the Personal Data Store
 * how do you get started / install / run it
 
-    >apt-get install python pip
+    >apt-get install python-pip
     
     >apt-get install python-virtualenv
     
