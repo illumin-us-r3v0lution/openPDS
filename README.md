@@ -14,13 +14,15 @@ We need some good docs in here detailing:
     
     >apt-get install mongodb mongodb-server
     
+    >apt-get install git
+    
     >service mongodb start
 
     >virtualenv pdsvirtenv
     
     >cd pdsvirtenv
     
-    >git clone git@github.com:IDCubed/OMS-PDS.git
+    >git clone git@github.com:HumanDynamics/openPDS.git
     
     >source bin/activate
 
